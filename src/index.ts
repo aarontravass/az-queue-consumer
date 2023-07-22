@@ -1,8 +1,13 @@
-import { QueueClient, QueueServiceClient } from "@azure/storage-queue";
-
+import {
+  DequeuedMessageItem,
+  QueueClient,
+  QueueServiceClient,
+} from "@azure/storage-queue";
+import { EventEmitter } from "node:events";
 export interface QueueOptions {
   pollingTime: number;
-  autoDequeue: boolean;
+  maxTries?: number;
+  numberOfMessages?: number;
 }
 
 export class AzureQueueConsumer {
@@ -11,7 +16,8 @@ export class AzureQueueConsumer {
   #options: QueueOptions;
   #handler: Function;
   #queueClient: QueueClient;
-
+  #eventEmitter = new EventEmitter();
+  #pollingTime: number;
   constructor(
     queueName: string,
     connectionString: string,
@@ -21,22 +27,68 @@ export class AzureQueueConsumer {
     this.#connectionString = connectionString;
     this.#queueName = queueName;
     this.#handler = handler;
-    this.#options = options ?? { pollingTime: 10, autoDequeue: true };
-
-    const queueServiceClient = QueueServiceClient.fromConnectionString(this.#connectionString);
+    this.#options = options ?? { pollingTime: 10 };
+    this.#options.maxTries = this.#options.maxTries ?? 4;
+    this.#options.numberOfMessages = this.#options.numberOfMessages ?? 1;
+    const queueServiceClient = QueueServiceClient.fromConnectionString(
+      this.#connectionString,
+      {
+        retryOptions: { maxTries: this.#options.maxTries },
+      }
+    );
     this.#queueClient = queueServiceClient.getQueueClient(this.#queueName);
+    this.#pollingTime = this.#options.pollingTime;
     this.#createQueueAsync();
   }
 
   #createQueueAsync = async () => {
     await this.#queueClient.createIfNotExists();
-  }
-
-  listen = () => {
-
   };
 
-  
+  listen = () => {
+    let pollingTimeOut = this.#pollingTime;
+    this.#handleIncomingMessage()
+      .then(async result => {
+        this.#eventEmitter.emit('message::onReceive');
+        try{
+          await this.#handler(result.receivedMessageItems);
+        }
+        catch(error) {
+          this.#eventEmitter.emit("handler::error", error);
+        }
+      }).catch(error => {
+        return;
+      }).then(_ => {
+        setTimeout(
+          this.listen.bind(this),
+          pollingTimeOut * 1000
+        );
+      }).catch(error => {
+        this.#eventEmitter.emit("error", error);
+        process.exit(1);
+      })
+  };
+
+  $on = this.#eventEmitter.on;
+
+  #deleteMessage = async (messages: DequeuedMessageItem[]) => {
+    for (const message of messages) {
+      this.#eventEmitter.emit(
+        "message::preDelete",
+        message.messageId,
+        message.popReceipt
+      );
+      await this.#queueClient
+        .deleteMessage(message.messageId, message.popReceipt)
+        .then((_) => {
+          this.#eventEmitter.emit(
+            "message::afterDelete",
+            message.messageId,
+            message.popReceipt
+          );
+        });
+    }
+  };
 
   #handleIncomingMessage = async () => {
     try {
