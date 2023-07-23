@@ -48,30 +48,34 @@ export class AzureQueueConsumer {
   listen = () => {
     let pollingTimeOut = this.#pollingTime;
     this.#handleIncomingMessage()
-      .then(async result => {
-        this.#eventEmitter.emit('message::onReceive');
-        try{
+      .then(async (result) => {
+        this.#eventEmitter.emit("message::onReceive");
+        let hasHandlerFinished = false;
+        try {
           await this.#handler(result.receivedMessageItems);
-        }
-        catch(error) {
+          this.#eventEmitter.emit("handler::finish");
+          hasHandlerFinished = true;
+        } catch (error) {
           this.#eventEmitter.emit("handler::error", error);
         }
-      }).catch(error => {
+        if (hasHandlerFinished)
+          await this.#deleteMessages(result.receivedMessageItems);
+      })
+      .catch((error) => {
         return;
-      }).then(_ => {
-        setTimeout(
-          this.listen.bind(this),
-          pollingTimeOut * 1000
-        );
-      }).catch(error => {
+      })
+      .then((_) => {
+        setTimeout(this.listen.bind(this), pollingTimeOut * 1000);
+      })
+      .catch((error) => {
         this.#eventEmitter.emit("error", error);
         process.exit(1);
-      })
+      });
   };
 
   $on = this.#eventEmitter.on;
 
-  #deleteMessage = async (messages: DequeuedMessageItem[]) => {
+  #deleteMessages = async (messages: DequeuedMessageItem[]) => {
     for (const message of messages) {
       this.#eventEmitter.emit(
         "message::preDelete",
