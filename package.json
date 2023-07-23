@@ -2,17 +2,30 @@
   "name": "azure-queue-storage-consumer",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
+  "main": "src/index.ts",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aarontravass/azure-queue-storage-consumer.git"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint:check": "eslint .src/** --ext=ts",
+    "lint:fix": "eslint src/** --fix --ext=ts",
+    "format:check": "prettier --check src/** test/**",
+    "format:fix": "prettier --write src/**"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "aarontravass",
+  "license": "MIT",
   "dependencies": {
     "@azure/storage-queue": "^12.14.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.6.7",
+    "@commitlint/config-conventional": "^17.6.7",
     "@types/node": "^20.4.4",
     "eslint": "^8.45.0",
     "eslint-config-prettier": "^8.8.0",
