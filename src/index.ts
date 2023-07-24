@@ -6,11 +6,11 @@ export class AzureQueueConsumer {
   readonly #queueName: string
   readonly #connectionString: string
   #options: QueueOptions
-  #handler: Function
+  #handler
   #queueClient: QueueClient
   #eventEmitter = new EventEmitter()
   #pollingTime: number
-  constructor(queueName: string, connectionString: string, handler: Function, options?: QueueOptions) {
+  constructor(queueName: string, connectionString: string, handler, options?: QueueOptions) {
     this.#connectionString = connectionString
     this.#queueName = queueName
     this.#handler = handler
@@ -30,7 +30,7 @@ export class AzureQueueConsumer {
   }
 
   listen = () => {
-    let pollingTimeOut = this.#pollingTime
+    const pollingTimeOut = this.#pollingTime
     this.#queueClient
       .receiveMessages()
       .then(async (result) => {
@@ -47,7 +47,7 @@ export class AzureQueueConsumer {
         }
         if (hasHandlerFinished) await this.#deleteMessages(result.receivedMessageItems)
       })
-      .catch((error) => {
+      .catch((_error) => {
         return
       })
       .then((_) => {
