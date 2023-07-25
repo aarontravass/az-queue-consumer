@@ -1,16 +1,16 @@
 import { DequeuedMessageItem, QueueClient, QueueServiceClient } from '@azure/storage-queue'
 import { EventEmitter } from 'node:events'
-import { QueueError, QueueOptions } from './utils'
+import { HandlerFunction, QueueError, QueueOptions } from './utils'
 
 export class AzureQueueConsumer {
   readonly #queueName: string
   readonly #connectionString: string
   #options: QueueOptions
-  #handler
+  #handler: HandlerFunction
   #queueClient: QueueClient
   #eventEmitter = new EventEmitter()
   #pollingTime: number
-  constructor(queueName: string, connectionString: string, handler, options?: QueueOptions) {
+  constructor(queueName: string, connectionString: string, handler: HandlerFunction, options?: QueueOptions) {
     this.#connectionString = connectionString
     this.#queueName = queueName
     this.#handler = handler
@@ -26,46 +26,49 @@ export class AzureQueueConsumer {
   }
 
   #createQueueAsync = async () => {
-    await this.#queueClient.createIfNotExists()
+    await this.#queueClient.createIfNotExists().catch((er) => {
+      throw new QueueError(er.code, er.message)
+    })
   }
 
   listen = () => {
-    const pollingTimeOut = this.#pollingTime
+    console.log('polling')
     this.#queueClient
       .receiveMessages()
       .then(async (result) => {
-        console.log(result._response)
         if (result.errorCode) throw new QueueError(result.errorCode, 'something went wrong')
-        this.#eventEmitter.emit('message::onReceive')
+        this.#eventEmitter.emit.bind(this)('message::onReceive')
         let hasHandlerFinished = false
         try {
           await this.#handler(result.receivedMessageItems)
-          this.#eventEmitter.emit('handler::finish')
+          this.#eventEmitter.emit.bind(this)('handler::finish')
           hasHandlerFinished = true
         } catch (error) {
-          this.#eventEmitter.emit('handler::error', error)
+          this.#eventEmitter.emit.bind(this)('handler::error', error)
         }
         if (hasHandlerFinished) await this.#deleteMessages(result.receivedMessageItems)
+        this.#pollingTime = this.#options.pollingTime
       })
-      .catch((_error) => {
+      .catch((error) => {
+        if (error.code === 'REQUEST_SEND_ERROR') this.#pollingTime += 5
         return
       })
       .then((_) => {
-        setTimeout(this.listen.bind(this), pollingTimeOut * 1000)
+        setTimeout(this.listen.bind(this), this.#pollingTime * 1000)
       })
       .catch((error) => {
-        this.#eventEmitter.emit('error', error)
+        this.#eventEmitter.emit.bind(this)('error', error)
         process.exit(1)
       })
   }
 
-  $on = this.#eventEmitter.on
+  on = this.#eventEmitter.on
 
   #deleteMessages = async (messages: DequeuedMessageItem[]) => {
     for (const message of messages) {
-      this.#eventEmitter.emit('message::preDelete', message.messageId, message.popReceipt)
+      this.#eventEmitter.emit.bind(this)('message::preDelete', message.messageId, message.popReceipt)
       await this.#queueClient.deleteMessage(message.messageId, message.popReceipt).then((_) => {
-        this.#eventEmitter.emit('message::afterDelete', message.messageId, message.popReceipt)
+        this.#eventEmitter.emit.bind(this)('message::afterDelete', message.messageId, message.popReceipt)
       })
     }
   }

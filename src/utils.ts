@@ -1,3 +1,5 @@
+import { DequeuedMessageItem } from '@azure/storage-queue'
+
 export interface QueueOptions {
   pollingTime: number
   maxTries?: number
@@ -13,3 +15,5 @@ export class QueueError extends Error {
     this.message = message
   }
 }
+
+export type HandlerFunction = (messages: DequeuedMessageItem[]) => void
