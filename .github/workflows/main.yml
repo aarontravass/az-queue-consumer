@@ -1,0 +1,41 @@
+name: main
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubunut-latest]
+    runs-on: ${{matrix.os}}
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18.x
+
+      - name: install node modules
+        run: pnpm install
+  
+      - name: check lint
+        run: pnpm lint:check
+
+      - name: check formatting
+        run: pnpm format:check
+
+      - name: build package
+        run: pnpm build
+
+      - name: run tests
+        run: pnpm test:coverage
+  
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
