@@ -24,7 +24,7 @@ jobs:
           version: 8.x
 
       - name: install node modules
-        run: pnpm config set enable-pre-post-scripts false "" && pnpm i --prod
+        run: npm pkg delete scripts.prepare && pnpm i
 
       - name: build package
         run: pnpm build
