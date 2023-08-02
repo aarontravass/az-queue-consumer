@@ -24,7 +24,7 @@
     "test:dev": "vitest",
     "test:coverage": "vitest run --coverage"
   },
-  "keywords": [],
+  "keywords": ["azure", "consumer", "queue", "azure queue storage"],
   "author": "aarontravass",
   "license": "MIT",
   "dependencies": {
