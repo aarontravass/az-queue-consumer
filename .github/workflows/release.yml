@@ -1,0 +1,35 @@
+name: NPM Publish
+
+# This action will trigger on every release get created
+on:
+  release:
+    types: [created]
+
+# Job will run on a ubuntu instance
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18.x
+          registry-url: "https://registry.npmjs.org"
+      
+      - name: install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.x
+
+      - name: install node modules
+        run: pnpm config set enable-pre-post-scripts false "" && pnpm i --prod
+
+      - name: build package
+        run: pnpm build
+
+      - name: Publish
+        run: pnpm publish --access public --tag ${{ env.RELEASE_TAG }}
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

@@ -1,7 +1,7 @@
 {
   "name": "az-queue-consumer",
   "version": "1.0.0",
-  "description": "",
+  "description": "Lightweight Azure Queue Consumer",
   "type": "module",
   "main": "dist/index.js",
   "source": "src/index.ts",
@@ -24,14 +24,18 @@
     "test:dev": "vitest",
     "test:coverage": "vitest run --coverage"
   },
-  "keywords": ["azure", "consumer", "queue", "azure queue storage"],
+  "keywords": [
+    "azure",
+    "consumer",
+    "queue",
+    "azure queue storage"
+  ],
   "author": "aarontravass",
   "license": "MIT",
   "dependencies": {
     "@azure/storage-queue": "^12.14.0"
   },
   "devDependencies": {
-    "@azure-tools/test-recorder": "^3.0.0",
     "@commitlint/cli": "^17.6.7",
     "@commitlint/config-conventional": "^17.6.7",
     "@parcel/packager-ts": "2.9.3",
