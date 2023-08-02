@@ -1,5 +1,5 @@
 {
-  "name": "azure-queue-storage-consumer",
+  "name": "az-queue-consumer",
   "version": "1.0.0",
   "description": "",
   "type": "module",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/aarontravass/azure-queue-storage-consumer.git"
+    "url": "https://github.com/aarontravass/az-queue-consumer.git"
   },
   "scripts": {
     "lint:check": "eslint src/** --ext=ts",
