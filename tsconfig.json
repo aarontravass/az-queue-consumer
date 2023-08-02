@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
+    "types": ["node"],
     "module": "esnext",
     "declaration": true,
     "preserveSymlinks": true,
