@@ -30,6 +30,6 @@ jobs:
         run: pnpm build
 
       - name: Publish
-        run: pnpm publish --access public --tag ${{env.GITHUB_REF_NAME}}
+        run: pnpm publish --access public --tag $GITHUB_REF_NAME --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
