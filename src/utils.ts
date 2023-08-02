@@ -17,3 +17,5 @@ export class QueueError extends Error {
 }
 
 export type HandlerFunction = (messages: DequeuedMessageItem[]) => void
+
+export const eventName = (context: string, event: string) => `${context}::${event}`
