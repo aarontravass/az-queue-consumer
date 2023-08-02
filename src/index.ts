@@ -25,11 +25,10 @@ export class AzureQueueConsumer {
     await this.#queueClient
       .createIfNotExists()
       .then((res) => {
-        this.#eventEmitter.emit.bind(this)(eventName('queue', 'create'))
+        this.#eventEmitter.emit.bind(this)(eventName('queue', 'ready'), res)
       })
       .catch((er) => {
-        console.error(er)
-        throw new Error(er)
+        throw new QueueError(er.code, er.message)
       })
   }
 
@@ -38,7 +37,7 @@ export class AzureQueueConsumer {
       .receiveMessages()
       .then(async (result) => {
         if (result.errorCode) throw new QueueError(result.errorCode, 'something went wrong')
-        this.#eventEmitter.emit.bind(this)(eventName('message', 'onReceive'))
+        this.#eventEmitter.emit.bind(this)(eventName('message', 'onReceive'), result)
         let hasHandlerFinished = false
         try {
           await this.#handler(result.receivedMessageItems)
@@ -68,8 +67,8 @@ export class AzureQueueConsumer {
   #deleteMessages = async (messages: DequeuedMessageItem[]) => {
     for (const message of messages) {
       this.#eventEmitter.emit.bind(this)(eventName('message', 'preDelete'), message.messageId, message.popReceipt)
-      await this.#queueClient.deleteMessage(message.messageId, message.popReceipt).then((_) => {
-        this.#eventEmitter.emit.bind(this)(eventName('message', 'afterDelete'), message.messageId, message.popReceipt)
+      await this.#queueClient.deleteMessage(message.messageId, message.popReceipt).then((res) => {
+        this.#eventEmitter.emit.bind(this)(eventName('message', 'afterDelete'), res)
       })
     }
   }
