@@ -5,6 +5,7 @@
 [![codecov](https://codecov.io/gh/aarontravass/azure-queue-storage-consumer/branch/main/graph/badge.svg?token=Agx0UiAO5s)](https://codecov.io/gh/aarontravass/azure-queue-storage-consumer)
 [![npm version](https://badge.fury.io/js/az-queue-consumer.svg)](https://badge.fury.io/js/az-queue-consumer)
 ![NPM License](https://img.shields.io/npm/l/az-queue-consumer)
+[![CodeFactor](https://www.codefactor.io/repository/github/aarontravass/az-queue-consumer/badge)](https://www.codefactor.io/repository/github/aarontravass/az-queue-consumer)
 <hr>
 </div>
 
@@ -37,6 +38,24 @@ listener.on('queue::ready', () => { console.log("Listener is ready to receive me
 listener.listen();
 
 ```
+## API
+
+`listen` - The listen function starts the listener which in turns polls the queue every 10 seconds. The default, which is 10 seconds, can be chaged by setting `pollingTime` in options in the constructor.
+
+`on` - Adds a event listener for specific events. Events are typed and custom handlers need to be passed. See below for full list of events
+
+`stop` - Stops the listener and completes execution of any ongoing handler before quitting. 
+
+## Events
+
+* `queue::ready` - emitted when the client connects to the queue and is ready to receive messages
+* `message::onReceive` - this event is emitted when the client receives a message
+* `handler::finish` - once the handler finishes executing, this event is emitted
+* `handler::error` - if the handler fails with an exception, the exception is emitted along with this event
+* `listener::error` - the listener can encounter errors even after connecting such as connection errors. This event gets emitted during such as errors
+* `message::preDelete` - Before deleting the message, this event is fired
+* `message::afterDelete` - After successful deletion, this event gets fired
+* `queue::shutdown` - when `stop()` is called, the queue emits this event and finished executing the current message
 
 ## Credits
 

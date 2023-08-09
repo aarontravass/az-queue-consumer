@@ -1,14 +1,15 @@
 import { DequeuedMessageItem, QueueClient, QueueServiceClient } from '@azure/storage-queue'
-import { EventEmitter } from 'node:events'
-import { HandlerFunction, QueueError, QueueOptions, eventName } from './utils'
+import { HandlerFunction, QueueError, QueueOptions } from './utils'
+import { QueueEventEmitter } from './events'
 
-export class AzureQueueConsumer {
+export class AzureQueueConsumer extends QueueEventEmitter {
   #options: QueueOptions
   #handler: HandlerFunction
   #queueClient: QueueClient
-  #eventEmitter = new EventEmitter()
   #pollingTime: number
+  #shouldShutdown = false
   constructor(queueName: string, connectionString: string, handler: HandlerFunction, options?: QueueOptions) {
+    super()
     this.#handler = handler
     this.#options = options ?? { pollingTime: 10 }
     this.#options.maxTries = this.#options.maxTries ?? 4
@@ -25,7 +26,7 @@ export class AzureQueueConsumer {
     await this.#queueClient
       .createIfNotExists()
       .then((res) => {
-        this.#eventEmitter.emit.bind(this)(eventName('queue', 'ready'), res)
+        this.emit('queue::ready', res)
       })
       .catch((er) => {
         throw new QueueError(er.code, er.message)
@@ -37,14 +38,14 @@ export class AzureQueueConsumer {
       .receiveMessages()
       .then(async (result) => {
         if (result.errorCode) throw new QueueError(result.errorCode, 'something went wrong')
-        this.#eventEmitter.emit.bind(this)(eventName('message', 'onReceive'), result)
+        this.emit('message::onReceive', result)
         let hasHandlerFinished = false
         try {
           await this.#handler(result.receivedMessageItems)
-          this.#eventEmitter.emit.bind(this)(eventName('handler', 'finish'))
+          this.emit('handler::finish')
           hasHandlerFinished = true
         } catch (error) {
-          this.#eventEmitter.emit.bind(this)(eventName('handler', 'error'), error)
+          this.emit('handler::error', error as Error)
         }
         if (hasHandlerFinished) await this.#deleteMessages(result.receivedMessageItems)
         this.#pollingTime = this.#options.pollingTime
@@ -54,22 +55,26 @@ export class AzureQueueConsumer {
         return
       })
       .then((_) => {
-        setTimeout(this.listen.bind(this), this.#pollingTime * 1000)
+        if (!this.#shouldShutdown) setTimeout(this.listen.bind(this), this.#pollingTime * 1000)
+        else this.removeAllListeners()
       })
       .catch((error) => {
-        this.#eventEmitter.emit.bind(this)(eventName('listener', 'error'), error)
+        this.emit('listener::error', error)
         process.exit(1)
       })
   }
 
-  on = this.#eventEmitter.on
-
   #deleteMessages = async (messages: DequeuedMessageItem[]) => {
     for (const message of messages) {
-      this.#eventEmitter.emit.bind(this)(eventName('message', 'preDelete'), message.messageId, message.popReceipt)
+      this.emit('message::preDelete', message.messageId, message.popReceipt)
       await this.#queueClient.deleteMessage(message.messageId, message.popReceipt).then((res) => {
-        this.#eventEmitter.emit.bind(this)(eventName('message', 'afterDelete'), res)
+        this.emit('message::afterDelete', res)
       })
     }
+  }
+
+  stop = () => {
+    this.#shouldShutdown = true
+    this.emit('queue::shutdown')
   }
 }

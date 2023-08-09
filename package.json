@@ -13,6 +13,10 @@
     "type": "git",
     "url": "https://github.com/aarontravass/az-queue-consumer.git"
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "scripts": {
     "lint:check": "eslint src/** --ext=ts",
     "lint:fix": "eslint src/** --fix --ext=ts",
@@ -22,7 +26,8 @@
     "watch": "parcel watch",
     "build": "parcel build",
     "test:dev": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "prepublish": "pnpm build"
   },
   "keywords": [
     "azure",
@@ -43,7 +48,6 @@
     "@types/node": "^20.4.4",
     "@typescript-eslint/eslint-plugin": "^6.1.0",
     "@vitest/coverage-v8": "^0.34.1",
-    "@vitest/expect": "^0.33.0",
     "eslint": "^8.45.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^5.0.0",
@@ -54,6 +58,5 @@
     "typescript": "^5.1.6",
     "vite": "^4.4.7",
     "vitest": "^0.33.0"
-  },
-  "prepare": "''"
+  }
 }

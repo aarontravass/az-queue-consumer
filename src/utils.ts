@@ -10,12 +10,10 @@ export class QueueError extends Error {
   code: string
   message: string
   constructor(code: string, message: string) {
-    super(message)
+    super(`${code}:${message}`)
     this.code = code
     this.message = message
   }
 }
 
 export type HandlerFunction = (messages: DequeuedMessageItem[]) => void
-
-export const eventName = (context: string, event: string) => `${context}::${event}`
