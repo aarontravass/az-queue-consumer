@@ -2,22 +2,21 @@ import { DequeuedMessageItem, QueueClient, QueueServiceClient } from '@azure/sto
 import { HandlerFunction, QueueError, QueueOptions } from './utils'
 import { QueueEventEmitter } from './events'
 
+type QueueConnection = string | QueueServiceClient
+
 export class AzureQueueConsumer extends QueueEventEmitter {
   #options: QueueOptions
   #handler: HandlerFunction
   #queueClient: QueueClient
   #pollingTime: number
   #shouldShutdown = false
-  constructor(queueName: string, connectionString: string, handler: HandlerFunction, options?: QueueOptions) {
+  constructor(queueName: string, connection: QueueConnection, handler: HandlerFunction, options?: QueueOptions) {
     super()
     this.#handler = handler
     this.#options = options ?? { pollingTime: 10 }
     this.#options.maxTries = this.#options.maxTries ?? 4
     this.#options.numberOfMessages = this.#options.numberOfMessages ?? 1
-    const queueServiceClient = QueueServiceClient.fromConnectionString(connectionString, {
-      retryOptions: { maxTries: this.#options.maxTries }
-    })
-    this.#queueClient = queueServiceClient.getQueueClient(queueName)
+    this.#queueClient = this.#getQueueClient(connection, queueName)
     this.#pollingTime = this.#options.pollingTime
     this.#createQueueAsync()
   }
@@ -76,5 +75,17 @@ export class AzureQueueConsumer extends QueueEventEmitter {
   stop = () => {
     this.#shouldShutdown = true
     this.emit('queue::shutdown')
+  }
+
+  #getQueueClient = (connection: QueueConnection, queueName: string) => {
+    let queueServiceClient: QueueServiceClient
+    if (typeof connection == 'string') {
+      queueServiceClient = QueueServiceClient.fromConnectionString(connection, {
+        retryOptions: { maxTries: this.#options.maxTries }
+      })
+    } else {
+      queueServiceClient = connection
+    }
+    return queueServiceClient.getQueueClient(queueName)
   }
 }

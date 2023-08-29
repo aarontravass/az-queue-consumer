@@ -18,16 +18,18 @@
     "access": "public"
   },
   "scripts": {
-    "lint:check": "eslint src/** --ext=ts",
-    "lint:fix": "eslint src/** --fix --ext=ts",
+    "build": "parcel build",
     "format:check": "prettier --check src/**",
     "format:fix": "prettier --write src/**",
+    "lint:check": "eslint src/** --ext=ts",
+    "lint:fix": "eslint src/** --fix --ext=ts",
     "prepare": "husky install",
-    "watch": "parcel watch",
-    "build": "parcel build",
-    "test:dev": "vitest",
+    "prepublish": "pnpm build",
     "test:coverage": "vitest run --coverage",
-    "prepublish": "pnpm build"
+    "test:dev": "vitest",
+    "test": "pnpm test:coverage",
+    "typecheck": "vitest typecheck --run",
+    "watch": "parcel watch"
   },
   "keywords": [
     "azure",
