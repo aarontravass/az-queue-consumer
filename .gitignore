@@ -148,10 +148,4 @@ yarn.lock
 # Optional compressed files (npm generated package, zip, etc)
 /*.zip
 
-# 0x
-profile-*
 
-# clinic
-profile*
-*clinic*
-*flamegraph*
