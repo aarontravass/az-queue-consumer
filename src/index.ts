@@ -4,12 +4,27 @@ import { QueueEventEmitter } from './events'
 
 type QueueConnection = string | QueueServiceClient
 
+/**
+ * The Main Queue Consumer class
+ * @class
+ */
 export class AzureQueueConsumer extends QueueEventEmitter {
   #options: QueueOptions
   #handler: HandlerFunction
   #queueClient: QueueClient
   #pollingTime: number
   #shouldShutdown = false
+
+  /**
+   *
+   * @param {string} queueName - the name of the queue to connect
+   * @param {(string|QueueServiceClient)} connection
+   * @param {Function} handler - A function to handle queue messages
+   * @param {Object=} options
+   * @param {number} options.pollingTime - Polling time in seconds for the queue
+   * @param {number=} options.maxTries - Maximum number of times to try before exiting
+   * @param {number=} options.numberOfMessages - Number of messages to accept from the queue
+   */
   constructor(queueName: string, connection: QueueConnection, handler: HandlerFunction, options?: QueueOptions) {
     super()
     this.#handler = handler
@@ -32,6 +47,11 @@ export class AzureQueueConsumer extends QueueEventEmitter {
       })
   }
 
+  /**
+   * The main listener method which polls the queueu and passes incoming messages to
+   * the supplied handler function
+   * @property
+   */
   listen = () => {
     this.#queueClient
       .receiveMessages()
@@ -72,6 +92,11 @@ export class AzureQueueConsumer extends QueueEventEmitter {
     }
   }
 
+  /**
+   * Calling this function stops the queue and shuts it down. Before stopping, all currently
+   * running handler functions are completed and messages deleted
+   * @property
+   */
   stop = () => {
     this.#shouldShutdown = true
     this.emit('queue::shutdown')

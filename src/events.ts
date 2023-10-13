@@ -18,6 +18,13 @@ interface Events {
 
 export class QueueEventEmitter {
   #emitter = new EventEmitter()
+
+  /**
+   * Attaches a handler for the given event and calls the handler when
+   * an event with the name is emitted
+   * @param {string} event
+   * @param {Function} handler
+   */
   on = <K extends keyof Events>(event: K, handler: Events[K]): void => {
     this.#emitter.on.bind(this)(event, handler)
   }

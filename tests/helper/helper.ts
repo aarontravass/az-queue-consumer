@@ -1,4 +1,9 @@
-import { DequeuedMessageItem, QueueCreateIfNotExistsResponse, QueueReceiveMessageResponse } from '@azure/storage-queue'
+import {
+  DequeuedMessageItem,
+  MessageIdDeleteResponse,
+  QueueCreateIfNotExistsResponse,
+  QueueReceiveMessageResponse
+} from '@azure/storage-queue'
 
 export class QueueService {
   readonly messages: DequeuedMessageItem[] = [
@@ -26,16 +31,26 @@ export class QueueService {
     this.queueMessage = this.messages
   }
 
-  deleteMessage = (messageId: string) => {
+  deleteMessage = (messageId: string): MessageIdDeleteResponse => {
     this.queueMessage = this.queueMessage.filter((message) => message.messageId != messageId)
+    return {
+      _response: undefined,
+      errorCode: undefined
+    }
   }
 
   restoreMessages = () => {
     this.queueMessage = this.messages
   }
 
-  fetchMessages = (count: number): QueueReceiveMessageResponse => ({
+  fetchQueueMessages = (count: number): QueueReceiveMessageResponse => ({
     receivedMessageItems: this.queueMessage.slice(0, Math.min(count, this.queueMessage.length)),
+    _response: undefined,
+    errorCode: undefined
+  })
+
+  fetchNMessages = (count: number): QueueReceiveMessageResponse => ({
+    receivedMessageItems: this.messages.slice(0, Math.min(count, this.messages.length)),
     _response: undefined,
     errorCode: undefined
   })

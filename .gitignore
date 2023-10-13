@@ -135,12 +135,6 @@ dist
 # macOS files
 .DS_Store
 
-# lock files
-bun.lockb
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
-
 # editor files
 .vscode
 .idea
@@ -148,10 +142,4 @@ yarn.lock
 # Optional compressed files (npm generated package, zip, etc)
 /*.zip
 
-# 0x
-profile-*
 
-# clinic
-profile*
-*clinic*
-*flamegraph*
