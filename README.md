@@ -9,7 +9,7 @@
 <hr>
 </div>
 
-Azure Queue Consumer is a simple consumer that allows you to handle queue messages without having to worry about setting up the azure framework.
+Azure Queue Consumer is a simple, typescript first consumer that allows you to handle queue messages without having to worry about setting up the azure framework.
 
 ## Installation
 
