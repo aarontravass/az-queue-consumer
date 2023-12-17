@@ -1,12 +1,18 @@
 import { DequeuedMessageItem, QueueClient, QueueServiceClient } from '@azure/storage-queue'
-import { HandlerFunction, QueueError, QueueOptions } from './utils'
+import { QueueConnectionError, QueueError } from './errors'
 import { QueueEventEmitter } from './events'
-
-type QueueConnection = string | QueueServiceClient
+import { HandlerFunction, QueueOptions, QueueConnection } from './types'
 
 /**
  * The Main Queue Consumer class
  * @class
+ * @example
+ * import { AzureQueueConsumer } from 'az-queue-consumer';
+ * const messageHandler = (messages) => { // do something with the message }
+ * const queueName = // queue name;
+ * const connectionString = // storage account connection string;
+ * const listener = new AzureQueueConsumer(queueName, connectionString, messageHandler);
+ * listener.listen();
  */
 export class AzureQueueConsumer extends QueueEventEmitter {
   #options: QueueOptions
@@ -73,7 +79,7 @@ export class AzureQueueConsumer extends QueueEventEmitter {
         if (error.code === 'REQUEST_SEND_ERROR') this.#pollingTime += 5
         return
       })
-      .then((_) => {
+      .then(() => {
         if (!this.#shouldShutdown) setTimeout(this.listen.bind(this), this.#pollingTime * 1000)
         else this.removeAllListeners()
       })
@@ -108,8 +114,12 @@ export class AzureQueueConsumer extends QueueEventEmitter {
       queueServiceClient = QueueServiceClient.fromConnectionString(connection, {
         retryOptions: { maxTries: this.#options.maxTries }
       })
-    } else {
+    } else if ('connectionString' in connection && 'credential' in connection) {
+      queueServiceClient = new QueueServiceClient(connection.connectionString, connection.credential)
+    } else if (connection instanceof QueueServiceClient) {
       queueServiceClient = connection
+    } else {
+      throw new QueueConnectionError('INVALID_CONNECTION', 'Queue Connection provided was invalid')
     }
     return queueServiceClient.getQueueClient(queueName)
   }

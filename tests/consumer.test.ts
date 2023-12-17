@@ -50,7 +50,7 @@ describe('azure queue tests', () => {
       const errorToThrow = { code: 'code', message: 'message' }
 
       try {
-        vi.spyOn(QueueServiceClient, 'fromConnectionString').mockImplementation((..._args: string[]) => {
+        vi.spyOn(QueueServiceClient, 'fromConnectionString').mockImplementation((...args: unknown) => {
           const getQueueClient = vi.fn(() => {
             const createIfNotExists = vi.fn(() => new Promise((resolve, reject) => reject(errorToThrow)))
 
@@ -59,11 +59,19 @@ describe('azure queue tests', () => {
           return { getQueueClient }
         })
 
-        const k = new AzureQueueConsumer('test', 'https://test.com', (...args) => {})
+        new AzureQueueConsumer('test', 'https://test.com', (...args) => {})
         await flushPromises()
       } catch (error) {
         console.error(error)
       }
+    })
+    describe('Queue Connection tests', () => {
+      it('should throw an error if connection is invalid', () => {
+        expect.assertions(1)
+        expect(() => new AzureQueueConsumer('test', ['hello'], (arg) => {})).toThrowError(
+          'Queue Connection provided was invalid'
+        )
+      })
     })
   })
   describe('listener tests', () => {
