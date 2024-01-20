@@ -41,6 +41,22 @@ export type HandlerFunction = (messages: DequeuedMessageItem[]) => void | Promis
  * @property {string} connectionString - Account Connection String
  * @property {object} credential - instance of Azure Credentials. Can be `DefaultAzureCredential`, `StorageSharedKeyCredential`, etc.
  */
-export type AzureCredential = { connectionString: string; credential: StorageSharedKeyCredential | AnonymousCredential }
+
+export type AzureCredential = {
+  /**
+   * URL of your queue
+   * @example
+   * `https://{accountName}.blob.core.windows.net`
+   */
+  queueUrl: string
+  /**
+   * Instance of Credential class which holds the authorization needed
+   * @example
+   * new DefaultAzureCredential() or
+   * new AnonymousCredential() or
+   * new StorageSharedKeyCredential(account, accountKey)
+   */
+  credential: StorageSharedKeyCredential | AnonymousCredential
+}
 
 export type QueueConnection = string | QueueServiceClient | AzureCredential

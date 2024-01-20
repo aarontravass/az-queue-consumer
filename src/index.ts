@@ -8,10 +8,9 @@ import { HandlerFunction, QueueOptions, QueueConnection } from './types'
  * @class
  * @example
  * import { AzureQueueConsumer } from 'az-queue-consumer';
- * const messageHandler = (messages) => { // do something with the message }
  * const queueName = // queue name;
  * const connectionString = // storage account connection string;
- * const listener = new AzureQueueConsumer(queueName, connectionString, messageHandler);
+ * const listener = new AzureQueueConsumer(queueName, connectionString, (message) => { // do something with the message });
  * listener.listen();
  */
 export class AzureQueueConsumer extends QueueEventEmitter {
@@ -45,9 +44,7 @@ export class AzureQueueConsumer extends QueueEventEmitter {
   #createQueueAsync = async () => {
     await this.#queueClient
       .createIfNotExists()
-      .then((res) => {
-        this.emit('queue::ready', res)
-      })
+      .then((res) => this.emit('queue::ready', res))
       .catch((er) => {
         throw new QueueError(er.code, er.message)
       })
@@ -92,9 +89,9 @@ export class AzureQueueConsumer extends QueueEventEmitter {
   #deleteMessages = async (messages: DequeuedMessageItem[]) => {
     for (const message of messages) {
       this.emit('message::preDelete', message.messageId, message.popReceipt)
-      await this.#queueClient.deleteMessage(message.messageId, message.popReceipt).then((res) => {
-        this.emit('message::afterDelete', res)
-      })
+      await this.#queueClient
+        .deleteMessage(message.messageId, message.popReceipt)
+        .then((res) => this.emit('message::afterDelete', res))
     }
   }
 
@@ -115,7 +112,7 @@ export class AzureQueueConsumer extends QueueEventEmitter {
         retryOptions: { maxTries: this.#options.maxTries }
       })
     } else if ('connectionString' in connection && 'credential' in connection) {
-      queueServiceClient = new QueueServiceClient(connection.connectionString, connection.credential)
+      queueServiceClient = new QueueServiceClient(connection.queueUrl, connection.credential)
     } else if (connection instanceof QueueServiceClient) {
       queueServiceClient = connection
     } else {

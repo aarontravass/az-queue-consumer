@@ -6,6 +6,7 @@
 [![npm version](https://badge.fury.io/js/az-queue-consumer.svg)](https://badge.fury.io/js/az-queue-consumer)
 ![NPM License](https://img.shields.io/npm/l/az-queue-consumer)
 [![CodeFactor](https://www.codefactor.io/repository/github/aarontravass/az-queue-consumer/badge)](https://www.codefactor.io/repository/github/aarontravass/az-queue-consumer)
+![TypeScript types](https://badgen.net/npm/types/az-queue-consumer)
 <hr>
 </div>
 
