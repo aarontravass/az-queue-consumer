@@ -1,5 +1,3 @@
-import { DequeuedMessageItem } from '@azure/storage-queue'
-
 /**
  * QueueOptions interface
  * @interface
@@ -31,9 +29,3 @@ export class QueueError extends Error {
     this.message = message
   }
 }
-
-/**
- * @type {Function}
- * @param {DequeuedMessageItem[]} messages
- */
-export type HandlerFunction = (messages: DequeuedMessageItem[]) => void

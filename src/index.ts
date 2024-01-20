@@ -1,8 +1,7 @@
 import { DequeuedMessageItem, QueueClient, QueueServiceClient } from '@azure/storage-queue'
-import { HandlerFunction, QueueError, QueueOptions } from './utils'
+import { QueueError, QueueOptions } from './utils'
 import { QueueEventEmitter } from './events'
-
-type QueueConnection = string | QueueServiceClient
+import { HandlerFunction, QueueConnection } from './types'
 
 /**
  * The Main Queue Consumer class
@@ -36,7 +35,7 @@ export class AzureQueueConsumer extends QueueEventEmitter {
     this.#createQueueAsync()
   }
 
-  #createQueueAsync = async () => {
+  async #createQueueAsync() {
     await this.#queueClient
       .createIfNotExists()
       .then((res) => {
@@ -52,7 +51,7 @@ export class AzureQueueConsumer extends QueueEventEmitter {
    * the supplied handler function
    * @property
    */
-  listen = () => {
+  listen() {
     this.#queueClient
       .receiveMessages()
       .then(async (result) => {
@@ -83,7 +82,7 @@ export class AzureQueueConsumer extends QueueEventEmitter {
       })
   }
 
-  #deleteMessages = async (messages: DequeuedMessageItem[]) => {
+  async #deleteMessages(messages: DequeuedMessageItem[]) {
     for (const message of messages) {
       this.emit('message::preDelete', message.messageId, message.popReceipt)
       await this.#queueClient.deleteMessage(message.messageId, message.popReceipt).then((res) => {
@@ -97,12 +96,12 @@ export class AzureQueueConsumer extends QueueEventEmitter {
    * running handler functions are completed and messages deleted
    * @property
    */
-  stop = () => {
+  stop() {
     this.#shouldShutdown = true
     this.emit('queue::shutdown')
   }
 
-  #getQueueClient = (connection: QueueConnection, queueName: string) => {
+  #getQueueClient(connection: QueueConnection, queueName: string) {
     let queueServiceClient: QueueServiceClient
     if (typeof connection == 'string') {
       queueServiceClient = QueueServiceClient.fromConnectionString(connection, {
