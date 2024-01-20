@@ -2,7 +2,7 @@
 <h1>Azure Queue Consumer</h1>
 
 [![main](https://github.com/aarontravass/azure-queue-storage-consumer/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/aarontravass/azure-queue-storage-consumer/actions/workflows/main.yml)
-[![codecov](https://codecov.io/gh/aarontravass/azure-queue-storage-consumer/branch/main/graph/badge.svg?token=Agx0UiAO5s)](https://codecov.io/gh/aarontravass/azure-queue-storage-consumer)
+[![codecov](https://codecov.io/gh/aarontravass/az-queue-consumer/graph/badge.svg?token=Agx0UiAO5s)](https://codecov.io/gh/aarontravass/az-queue-consumer)
 [![npm version](https://badge.fury.io/js/az-queue-consumer.svg)](https://badge.fury.io/js/az-queue-consumer)
 ![NPM License](https://img.shields.io/npm/l/az-queue-consumer)
 [![CodeFactor](https://www.codefactor.io/repository/github/aarontravass/az-queue-consumer/badge)](https://www.codefactor.io/repository/github/aarontravass/az-queue-consumer)
